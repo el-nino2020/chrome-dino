@@ -7,19 +7,18 @@ import java.awt.*;
  */
 public class Dino {
     public static Image[] images;
-    public static final int IMAGE_NUM = 3;
 
 
-    public static final int STAND_LENGTH = 42;//下面三个状态(dino站立时)图片的尺寸
+    public static final int STAND_LENGTH = 42;//dino站立时图片的尺寸
     public static final int STAND_WIDTH = 45;
+
+    public static final int BELOW_LENGTH = 57;//dino蹲下时图片的尺寸
+    public static final int BELOW_WIDTH = 28;
+
 
     public static final int STAND_FULL = 0;//双脚在地
     public static final int LEFT_UP = 1; //左脚在空中
     public static final int RIGHT_UP = 2;//右脚在空中
-
-    public static final int BELOW_LENGTH = 57;//下面这两个状态(dino蹲下)图片的尺寸
-    public static final int BELOW_WIDTH = 28;
-
     public static final int BELOW_LEFT_UP = 3; //左脚在空中，且蹲下
     public static final int BELOW_RIGHT_UP = 4; //右脚在空中，且蹲下
 
@@ -34,21 +33,18 @@ public class Dino {
 
 
     //dino图片的左下角的坐标 (x, y)
-    int x;//x没用，因为dino只在竖直方向跳跃、下潜
-    int y;
+    int x = 20;//x不会变，因为dino只在竖直方向跳跃、下潜
+    int y = STAND_Y;
 
-
-    int length;//dino图片向x轴的投影的长度
-    int width;//dino图片向y轴的投影的长度
+    public static final int STAND_Y = GamePanel.groundY - (Dino.STAND_WIDTH - GamePanel.groundWidth);
+    public static final int BELOW_Y = GamePanel.groundY - (Dino.BELOW_WIDTH - GamePanel.groundWidth);
 
     public int state = LEFT_UP;
     public int jumpSpeed = 10;
+    public boolean jumping = false;//在空中的时候不能再次跳
 
-    public Dino(int x, int y) {
-        this.x = x;
-        this.y = y;
 
-    }
+    public static final int IMAGE_NUM = 5;
 
     //将图片加载入内存
     static {
@@ -56,6 +52,8 @@ public class Dino {
         images[0] = readImage("/images/Dino-stand.png");
         images[1] = readImage("/images/Dino-left-up.png");
         images[2] = readImage("/images/Dino-right-up.png");
+        images[3] = readImage("/images/Dino-below-left-up.png");
+        images[4] = readImage("/images/Dino-below-right-up.png");
     }
 
     //工具函数
@@ -68,15 +66,17 @@ public class Dino {
         //检查是否处于空中
         if (!(state == UP || state == DOWN))
             return;
+        jumping = true;
 
         if (state == DOWN) {
-            if (y >= GamePanel.groundY - 40) {
+            if (y >= GamePanel.groundY - (STAND_WIDTH - GamePanel.groundWidth)) {
                 state = LEFT_UP;
+                jumping = false;
             } else {
                 y += jumpSpeed;
             }
         } else {//state == UP
-            if (y <= GamePanel.groundY - 40 - JUMP_HEIGHT) {
+            if (y <= GamePanel.groundY - (STAND_WIDTH - GamePanel.groundWidth) - JUMP_HEIGHT) {
                 state = DOWN;
             } else {
                 y -= jumpSpeed;
@@ -90,8 +90,12 @@ public class Dino {
         }
         if (state == LEFT_UP) {
             state = RIGHT_UP;
-        } else {
+        } else if (state == RIGHT_UP) {
             state = LEFT_UP;
+        } else if (state == BELOW_LEFT_UP) {
+            state = BELOW_RIGHT_UP;
+        } else if (state == BELOW_LEFT_UP) {
+            state = BELOW_LEFT_UP;
         }
     }
 

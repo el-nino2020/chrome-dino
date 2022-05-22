@@ -1,4 +1,5 @@
 import com.sun.corba.se.impl.orbutil.graph.Graph;
+import org.omg.PortableInterceptor.DISCARDING;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,14 +11,15 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
     private int score = 0;
 
     private Image ground;//地面先暂且做成不变的
-    public static int groundY = 400;
+    public static int groundY = 400;//地面在坐标系的y坐标
+    public static int groundWidth = 5;//地面图片的宽度
 
     private Dino dino;
 
     public GamePanel() {
         ground = Toolkit.getDefaultToolkit().getImage(
                 JPanel.class.getResource("/images/Ground.png"));
-        dino = new Dino(20, groundY - 40);
+        dino = new Dino();
 
     }
 
@@ -42,8 +44,17 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
         if (dino.state == Dino.UP || dino.state == Dino.DOWN) {
             picIndex = Dino.STAND_FULL;
         }
+        int picLength = Dino.STAND_LENGTH;
+        int picWidth = Dino.STAND_WIDTH;
 
-        g.drawImage(Dino.images[picIndex], dino.x, dino.y, Dino.STAND_LENGTH, Dino.STAND_WIDTH, this);
+        //dino蹲下和站立时的图片尺寸是不一样的
+        if (dino.state == Dino.BELOW_LEFT_UP || dino.state == Dino.BELOW_RIGHT_UP) {
+            picLength = Dino.BELOW_LENGTH;
+            picWidth = Dino.BELOW_WIDTH;
+        }
+
+        //state同时是所使用的的图片的下标
+        g.drawImage(Dino.images[picIndex], dino.x, dino.y, picLength, picWidth, this);
     }
 
     private void paintScore(Graphics g) {
@@ -58,11 +69,16 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
 
     }
 
+    //按下按键发生的事件
     @Override
     public void keyPressed(KeyEvent e) {
+        //dino 在空中时不允许任何操作
+        if (dino.jumping) {
+        } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            //dino下蹲
 
-        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-
+            dino.setState(Dino.BELOW_LEFT_UP);
+            dino.y = Dino.BELOW_Y;
         } else if (e.getKeyCode() == KeyEvent.VK_UP
                 || e.getKeyCode() == KeyEvent.VK_SPACE) {
             //dino起跳
@@ -71,10 +87,15 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
         repaint();
     }
 
+    //释放按键发生的事件
     @Override
     public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_UP
-                || e.getKeyCode() == KeyEvent.VK_SPACE) {
+        //dino 在空中时不允许任何操作
+        if (dino.jumping) {
+        } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            //dino不再蹲下
+            dino.setState(Dino.LEFT_UP);
+            dino.y = Dino.STAND_Y;
 
         }
         repaint();
