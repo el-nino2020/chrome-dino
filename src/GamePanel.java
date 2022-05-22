@@ -15,7 +15,7 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
 
     private long lastObstacleCreated = System.currentTimeMillis();
     private long obstacleCreatedInterval = 1300;//隔多少 毫秒 生成一个障碍物
-    private static final int OBSTACLE_NUM = 2;//一共有几种障碍物
+    private static final int OBSTACLE_NUM = 3;//一共有几种障碍物
 
     private int gameState;
 
@@ -105,7 +105,7 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
         g.setColor(Color.black);
 
         g.setFont(new Font("黑体", Font.BOLD, 50));
-        g.drawString("Google Dino", GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 3);
+        g.drawString("Chrome Dino", GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 3);
         g.setFont(new Font("黑体", Font.BOLD, 25));
 
         g.drawString("press space to play", GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 2);
@@ -206,6 +206,8 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
             obstacles.add(new Cactus(0));
         } else if (choice < 2 / (double) OBSTACLE_NUM) {
             obstacles.add(new Cactus(1));
+        } else if (choice < 3 / (double) OBSTACLE_NUM) {
+            obstacles.add(new Pterosaur());
         }
     }
 

@@ -40,7 +40,7 @@ public class Dino {
     public static final int BELOW_Y = GamePanel.groundY - (Dino.BELOW_WIDTH - GamePanel.groundWidth);
 
     public int state = LEFT_UP;
-    public int jumpSpeed = 10;
+    public int jumpSpeed = 20;
     public boolean jumping = false;//在空中的时候不能再次跳
 
 
