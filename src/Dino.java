@@ -94,7 +94,7 @@ public class Dino {
             state = LEFT_UP;
         } else if (state == BELOW_LEFT_UP) {
             state = BELOW_RIGHT_UP;
-        } else if (state == BELOW_LEFT_UP) {
+        } else if (state == BELOW_RIGHT_UP) {
             state = BELOW_LEFT_UP;
         }
     }

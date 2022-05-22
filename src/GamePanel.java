@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 
 public class GamePanel extends JPanel implements KeyListener, Runnable {
 
@@ -12,11 +13,24 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
 
     private Image ground;//地面先暂且做成不变的
     public static int groundY = 400;//地面在坐标系的y坐标
+    public static int groundX = 0;//地面在坐标系的x坐标
     public static int groundWidth = 5;//地面图片的宽度
 
+    private long lastObstacleCreated = System.currentTimeMillis();
+    private long obstacleCreatedInterval = 1000;//隔多少 毫秒 生成一个障碍物
+    private static final int OBSTACLE_NUM = 2;//一共有几种障碍物
+
+    private int gameState;
+
+    private static final int START_MENU = 0;
+    private static final int GAMING = 1;
+    private static final int END_MENU = 2;
+
     private Dino dino;
+    private ArrayList<Obstacle> obstacles = new ArrayList<>();
 
     public GamePanel() {
+        gameState = START_MENU;
         ground = Toolkit.getDefaultToolkit().getImage(
                 JPanel.class.getResource("/images/Ground.png"));
         dino = new Dino();
@@ -27,14 +41,22 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
     public void paint(Graphics g) {
         super.paint(g);
 
-        paintGround(g);
-        paintDino(g);
-        paintScore(g);
+        if (gameState == START_MENU) {
+            paintStartMenu(g);
+        } else if (gameState == GAMING) {
+            paintGround(g);
+            paintDino(g);
+            paintScore(g);
+            paintObstacle(g);
+        } else if (gameState == END_MENU) {
 
+        }
     }
 
     private void paintGround(Graphics g) {
-        g.drawImage(ground, 0, groundY, 1200, 12, this);
+        g.drawImage(ground, groundX, groundY, 1200, 12, this);
+        groundX -= Obstacle.MOVE_SPEED;//和障碍物移动速度一致
+        if (groundX + 1200 < GameView.FRAME_LENGTH) groundX = 0;
     }
 
     private void paintDino(Graphics g) {
@@ -64,6 +86,35 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
         g.drawString(score + "", GameView.FRAME_LENGTH - 100, 50);
     }
 
+    private void paintObstacle(Graphics g) {
+
+        for (int i = 0; i < obstacles.size(); i++) {
+            Obstacle obstacle = obstacles.get(i);
+
+            if (obstacle.getX() <= 0) {
+                obstacles.remove(i);
+                i--;//使用索引删除元素的时候要注意
+                continue;
+            }
+
+            Image image = obstacle.getImage();
+            g.drawImage(image, obstacle.getX(), obstacle.getY(),
+                    obstacle.getLength(), obstacle.getWidth(), this);
+            obstacle.moveLeft();
+        }
+    }
+
+    private void paintStartMenu(Graphics g) {
+        g.setColor(Color.black);
+
+        g.setFont(new Font("黑体", Font.BOLD, 50));
+        g.drawString("Google Dino", GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 3);
+        g.setFont(new Font("黑体", Font.BOLD, 25));
+
+        g.drawString("press space to play", GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 2);
+    }
+
+
     @Override
     public void keyTyped(KeyEvent e) {
 
@@ -72,49 +123,82 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
     //按下按键发生的事件
     @Override
     public void keyPressed(KeyEvent e) {
-        //dino 在空中时不允许任何操作
-        if (dino.jumping) {
-        } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-            //dino下蹲
 
-            dino.setState(Dino.BELOW_LEFT_UP);
-            dino.y = Dino.BELOW_Y;
-        } else if (e.getKeyCode() == KeyEvent.VK_UP
-                || e.getKeyCode() == KeyEvent.VK_SPACE) {
-            //dino起跳
-            dino.setState(Dino.UP);
+        if (gameState == GAMING) {
+
+            //dino 在空中时不允许任何操作
+            if (dino.jumping) {
+            } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                //dino下蹲
+
+                dino.setState(Dino.BELOW_LEFT_UP);
+                dino.y = Dino.BELOW_Y;
+            } else if (e.getKeyCode() == KeyEvent.VK_UP
+                    || e.getKeyCode() == KeyEvent.VK_SPACE) {
+                //dino起跳
+                dino.setState(Dino.UP);
+            }
+        } else if (gameState == START_MENU) {
+            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                gameState = GAMING;
+            }
         }
-        repaint();
+//        repaint();
     }
 
     //释放按键发生的事件
     @Override
     public void keyReleased(KeyEvent e) {
-        //dino 在空中时不允许任何操作
-        if (dino.jumping) {
-        } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-            //dino不再蹲下
-            dino.setState(Dino.LEFT_UP);
-            dino.y = Dino.STAND_Y;
+        if (gameState == GAMING) {
 
+            //dino 在空中时不允许任何操作
+            if (dino.jumping) {
+            } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                //dino不再蹲下
+                dino.setState(Dino.LEFT_UP);
+                dino.y = Dino.STAND_Y;
+
+            }
         }
-        repaint();
+//        repaint();
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                Thread.sleep(50);
+                Thread.sleep(30);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-            dino.walk();
-            dino.jump();
-            score++;
+            if (gameState == GAMING) {
+                createObstacle();
+                dino.walk();
+                dino.jump();
+                score++;
+            }
 
             repaint();
+            if (gameState == END_MENU) break;
         }
+    }
+
+
+    public void createObstacle() {
+        if (System.currentTimeMillis() < lastObstacleCreated + obstacleCreatedInterval) {
+            return;
+        }
+        lastObstacleCreated = System.currentTimeMillis();
+
+        //返回[0, 1)的随机数
+        double choice = Math.random();
+
+        if (choice < 1 / (double) OBSTACLE_NUM) {
+            obstacles.add(new Plant(0));
+        } else if (choice < 2 / (double) OBSTACLE_NUM) {
+            obstacles.add(new Plant(1));
+        }
+
+
     }
 }
