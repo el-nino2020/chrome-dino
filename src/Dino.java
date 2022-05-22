@@ -29,7 +29,7 @@ public class Dino {
     /**
      * 能起跳的最大高度
      */
-    public static final int JUMP_HEIGHT = 96;
+    public static final int JUMP_HEIGHT = 200;
 
 
     //dino图片的左上角的坐标 (x, y)
@@ -88,6 +88,7 @@ public class Dino {
         if (state == UP || state == DOWN) {
             return;
         }
+        //换一只脚继续走路
         if (state == LEFT_UP) {
             state = RIGHT_UP;
         } else if (state == RIGHT_UP) {
@@ -102,6 +103,20 @@ public class Dino {
 
     public void setState(int state) {
         this.state = state;
+    }
+
+    public int getLength() {
+        if (state == BELOW_LEFT_UP || state == BELOW_RIGHT_UP) {
+            return BELOW_LENGTH;
+        }
+        return STAND_LENGTH;
+    }
+
+    public int getWidth() {
+        if (state == BELOW_LEFT_UP || state == BELOW_RIGHT_UP) {
+            return BELOW_WIDTH;
+        }
+        return STAND_WIDTH;
     }
 
 }

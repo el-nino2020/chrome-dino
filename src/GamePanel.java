@@ -1,6 +1,3 @@
-import com.sun.corba.se.impl.orbutil.graph.Graph;
-import org.omg.PortableInterceptor.DISCARDING;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -11,13 +8,13 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
 
     private int score = 0;
 
-    private Image ground;//地面先暂且做成不变的
+    private Image ground;
     public static int groundY = 400;//地面在坐标系的y坐标
     public static int groundX = 0;//地面在坐标系的x坐标
     public static int groundWidth = 5;//地面图片的宽度
 
     private long lastObstacleCreated = System.currentTimeMillis();
-    private long obstacleCreatedInterval = 1000;//隔多少 毫秒 生成一个障碍物
+    private long obstacleCreatedInterval = 1300;//隔多少 毫秒 生成一个障碍物
     private static final int OBSTACLE_NUM = 2;//一共有几种障碍物
 
     private int gameState;
@@ -49,7 +46,7 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
             paintScore(g);
             paintObstacle(g);
         } else if (gameState == END_MENU) {
-
+            paintEndMenu(g);
         }
     }
 
@@ -115,6 +112,17 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
     }
 
 
+    private void paintEndMenu(Graphics g) {
+        g.setColor(Color.black);
+
+        g.setFont(new Font("黑体", Font.BOLD, 50));
+        g.drawString("Good Game", GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 3);
+        g.setFont(new Font("黑体", Font.BOLD, 25));
+
+        g.drawString(String.format("Score is %d", score), GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 2);
+    }
+
+
     @Override
     public void keyTyped(KeyEvent e) {
 
@@ -133,12 +141,12 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
 
                 dino.setState(Dino.BELOW_LEFT_UP);
                 dino.y = Dino.BELOW_Y;
-            } else if (e.getKeyCode() == KeyEvent.VK_UP
-                    || e.getKeyCode() == KeyEvent.VK_SPACE) {
+            } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                 //dino起跳
                 dino.setState(Dino.UP);
             }
         } else if (gameState == START_MENU) {
+            //按空格键开始游戏
             if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                 gameState = GAMING;
             }
@@ -176,6 +184,7 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
                 dino.walk();
                 dino.jump();
                 score++;
+                checkCollision();
             }
 
             repaint();
@@ -184,7 +193,7 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
     }
 
 
-    public void createObstacle() {
+    private void createObstacle() {
         if (System.currentTimeMillis() < lastObstacleCreated + obstacleCreatedInterval) {
             return;
         }
@@ -194,11 +203,50 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
         double choice = Math.random();
 
         if (choice < 1 / (double) OBSTACLE_NUM) {
-            obstacles.add(new Plant(0));
+            obstacles.add(new Cactus(0));
         } else if (choice < 2 / (double) OBSTACLE_NUM) {
-            obstacles.add(new Plant(1));
+            obstacles.add(new Cactus(1));
         }
+    }
 
+    /**
+     * 检查dino是否和任意障碍物相撞
+     */
+    private void checkCollision() {
+        for (Obstacle obstacle : obstacles) {
+            if (collided(obstacle)) {
+                gameState = END_MENU;
+                break;
+            }
+        }
+    }
 
+    /**
+     * 检查dino是否和某一障碍物相撞
+     *
+     * @param obstacle 待比较的障碍物
+     * @return 如果相撞，返回true,否则返回false
+     */
+    private boolean collided(Obstacle obstacle) {
+        int x = obstacle.getX();
+        int y = obstacle.getY();
+        int length = obstacle.getLength();
+        int width = obstacle.getWidth();
+
+        // 检查的方法是看障碍物图片的四个角的点是否在dino图片中
+        if (pointInDino(x, y)) return true;
+        else if (pointInDino(x + length, y)) return true;
+        else if (pointInDino(x + length, y + width)) return true;
+        else if (pointInDino(x, y + width)) return true;
+
+        return false;
+    }
+
+    /**
+     * (x, y)是否在dino图片中
+     */
+    private boolean pointInDino(int x, int y) {
+        return dino.x <= x && x <= dino.x + dino.getLength() &&
+                dino.y <= y && y <= dino.y + dino.getWidth();
     }
 }

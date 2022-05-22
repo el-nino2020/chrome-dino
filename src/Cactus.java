@@ -4,7 +4,7 @@ import java.awt.*;
 /**
  * 游戏中的仙人掌
  */
-public class Plant implements Obstacle {
+public class Cactus implements Obstacle {
 
     public static Image[] images;
 
@@ -33,7 +33,7 @@ public class Plant implements Obstacle {
     //type == 0 || type == 1
     public int type;
 
-    public Plant(int type) {
+    public Cactus(int type) {
         this.type = type;
         y = GamePanel.groundY + GamePanel.groundWidth - picWidth;
         x = GameView.FRAME_LENGTH;
