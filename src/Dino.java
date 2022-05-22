@@ -32,7 +32,7 @@ public class Dino {
     public static final int JUMP_HEIGHT = 96;
 
 
-    //dino图片的左下角的坐标 (x, y)
+    //dino图片的左上角的坐标 (x, y)
     int x = 20;//x不会变，因为dino只在竖直方向跳跃、下潜
     int y = STAND_Y;
 
