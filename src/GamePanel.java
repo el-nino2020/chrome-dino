@@ -14,7 +14,7 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
     public static int groundWidth = 5;//地面图片的宽度
 
     private long lastObstacleCreated = System.currentTimeMillis();
-    private long obstacleCreatedInterval = 1300;//隔多少 毫秒 生成一个障碍物
+    private long obstacleCreatedInterval = 1700;//隔多少 毫秒 生成一个障碍物
     private static final int OBSTACLE_NUM = 3;//一共有几种障碍物
 
     private int gameState;
@@ -120,6 +120,7 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
         g.setFont(new Font("黑体", Font.BOLD, 25));
 
         g.drawString(String.format("Score is %d", score), GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 2);
+        g.drawString("press space to play a new round", GameView.FRAME_LENGTH / 4, GameView.FRAME_WIDTH / 2 + 60);
     }
 
 
@@ -149,6 +150,11 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
             //按空格键开始游戏
             if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                 gameState = GAMING;
+            }
+        } else if (gameState == END_MENU) {
+            //按空格键开始新一局游戏
+            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                resetGame();
             }
         }
 //        repaint();
@@ -188,7 +194,6 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
             }
 
             repaint();
-            if (gameState == END_MENU) break;
         }
     }
 
@@ -250,5 +255,12 @@ public class GamePanel extends JPanel implements KeyListener, Runnable {
     private boolean pointInDino(int x, int y) {
         return dino.x <= x && x <= dino.x + dino.getLength() &&
                 dino.y <= y && y <= dino.y + dino.getWidth();
+    }
+
+    //将本类的属性重新初始化
+    private void resetGame() {
+        score = 0;
+        gameState = START_MENU;
+        obstacles.clear();
     }
 }

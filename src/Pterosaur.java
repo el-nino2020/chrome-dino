@@ -35,7 +35,7 @@ public class Pterosaur implements Obstacle {
     public Pterosaur() {
         state = WING_UP;
         x = GameView.FRAME_LENGTH;
-        y = GamePanel.groundY + GamePanel.groundWidth - picWidth - 50 - (int) (50 * Math.random());
+        y = GamePanel.groundY + GamePanel.groundWidth - picWidth  - (int) (50 * Math.random());
     }
 
     @Override
